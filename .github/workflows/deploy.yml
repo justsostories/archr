@@ -1,0 +1,49 @@
+name: AWS CloudFormation CI/CD
+
+#on:
+  #push:
+    #branches: [ main ]
+  #pull_request:
+    #branches: [ main ]
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+  pull-requests: write # To post change set comments
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CloudFormation Linter
+        uses: scottbrenner/cfn-lint-action@v2
+        with:
+          args: "-t ./templates/*.yaml" # Validates templates
+
+      - name: Security Scan (Checkov)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ./templates/
+          framework: cloudformation
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: us-east-1
+
+      - name: Deploy to CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: my-production-stack
+          template: ./templates/main.yaml
+          no-fail-on-empty-changeset: "1"
+          # Only executes if merged to main; otherwise creates a preview
