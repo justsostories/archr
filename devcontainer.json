@@ -1,0 +1,25 @@
+{
+  "name": "AWS CloudFormation Mobile IDE",
+  "image": "://microsoft.com",
+  "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.vscode-yaml",
+        "amazonwebservices.aws-toolkit-vscode",
+        "kddejong.vscode-cfn-lint",
+        "dannysteenman.cloudformation-yaml-snippets",
+        "bridgecrew.checkov"
+      ],
+      "settings": {
+        "yaml.customTags": [
+          "!Ref", "!GetAtt", "!Sub", "!Join sequence", "!Select sequence", "!Split sequence", "!FindInMap sequence", "!ImportValue", "!Base64"
+        ],
+        "cfnLint.path": "/usr/local/bin/cfn-lint"
+      }
+    }
+  },
+  "postCreateCommand": "pip3 install cfn-lint checkov"
+}
